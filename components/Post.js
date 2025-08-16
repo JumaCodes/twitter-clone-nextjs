@@ -16,10 +16,7 @@ import {
   SwitchHorizontalIcon,
   TrashIcon,
 } from "@heroicons/react/outline";
-import {
-  HeartIcon as HeartIconFilled,
-  ChatIcon as ChatIconFilled,
-} from "@heroicons/react/solid";
+import { HeartIcon as HeartIconFilled } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -37,73 +34,114 @@ function Post({ id, post, postPage }) {
   const [liked, setLiked] = useState(false);
   const router = useRouter();
 
-  
-
-   useEffect(
-    () =>
-      onSnapshot(
-        query(collection(db, "posts",id,"comments"), orderBy("timestamp", "desc")),
-        (snapshot) =>setComments(snapshot.docs) 
-      ),
-    [db,id]
-  );
-
+  // Fetch comments
   useEffect(() => {
-    onSnapshot(collection(db, 'posts', id, 'likes'), (snapshot) => setLikes(snapshot.docs)
-    )},[db, id]);
+    if (!id) return;
+    const commentsQuery = query(
+      collection(db, "posts", id, "comments"),
+      orderBy("timestamp", "desc")
+    );
+    const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+      setComments(snapshot.docs);
+    });
+    return () => unsubscribe();
+  }, [id]);
 
+  // Fetch likes
   useEffect(() => {
-    setLiked(likes.findIndex((like) => like.id === session?.user?.uid) !== -1
-    )}, [likes])
+    if (!id) return;
+    const likesRef = collection(db, "posts", id, "likes");
+    const unsubscribe = onSnapshot(likesRef, (snapshot) =>
+      setLikes(snapshot.docs)
+    );
+    return () => unsubscribe();
+  }, [id]);
 
+  // Check if liked by current user
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    setLiked(likes.some((like) => like.id === session.user.email));
+  }, [likes, session?.user?.email]);
 
+  // Like / Unlike a post
   const likePost = async () => {
+    if (!session?.user?.email) return;
+    const likeRef = doc(db, "posts", id, "likes", session.user.email);
+
     if (liked) {
-      await deleteDoc(doc(db, 'posts', id, 'likes', session.user.uid))
+      await deleteDoc(likeRef);
     } else {
-      await setDoc(doc(db, 'posts', id, 'likes', session.user.uid), {
-        username: session.user.name,
-      })
+      await setDoc(likeRef, { username: session.user.name });
     }
-  }
-  
-  
+  };
+
   return (
-    <div className='p-3 flex cursor-pointer border-b border-gray-700'
-      onClick={() => router.push(`/${id}`)}>
+    <div
+      className="p-3 flex cursor-pointer border-b border-gray-700"
+      onClick={() => router.push(`/${id}`)}
+    >
       {!postPage && (
-        <img src={post?.userImg} alt="Profile Pic" className='h-11 w-11 rounded-full mr-4' />
+        <img
+          src={post?.userImg}
+          alt="Profile Pic"
+          className="h-11 w-11 rounded-full mr-4"
+        />
       )}
+
       <div className="flex flex-col space-y-2 w-full">
-        <div className={`flex ${!postPage && 'justify-between'}`}>
+        <div className={`flex ${!postPage ? "justify-between" : ""}`}>
           {postPage && (
-            <img src={post?.userImg} alt="Profile Pic" className='h-11 w-11 rounded-full mr-4' />
+            <img
+              src={post?.userImg}
+              alt="Profile Pic"
+              className="h-11 w-11 rounded-full mr-4"
+            />
           )}
 
           <div className="text-[#6e757d]">
             <div className="inline-block group">
-              <h4 className={`font-bold text-[15px] sm:text-base text-[#d9d9d9] group-hover:underline ${!postPage && 'inline-block'}`}>{post?.username}</h4>
-              <span className={`text-sm sm:text-[15px] ${!postPage && 'ml-1.5'}`}>
-                @{post?.tag}
-              </span>
+              <h4 className="font-bold text-[15px] sm:text-base text-[#d9d9d9] group-hover:underline">
+                {post?.username}
+              </h4>
+              <span className="text-sm sm:text-[15px]">@{post?.tag}</span>
             </div>{" "}
             ·{" "}
-            <span className='hover:underline text-sm sm:text-[15px]'>
+            <span className="hover:underline text-sm sm:text-[15px]">
               <Moment fromNow>{post?.timestamp?.toDate()}</Moment>
             </span>
             {!postPage && (
-              <p className='text-[#d9d9d9] text-[15px] sm:text-base mt-0.5'>{post?.text}</p>
+              <p className="text-[#d9d9d9] text-[15px] sm:text-base mt-0.5">
+                {post?.text}
+              </p>
             )}
           </div>
+
           <div className="icon group flex-shrink-0 ml-auto">
             <DotsHorizontalIcon className="h-5 text-[#6e767d] group-hover:text-[#1d9bf0]" />
           </div>
         </div>
+
         {postPage && (
-          <p className='text-[#d9d9d9] text-[15px] sm:text-base mt-0.5'>{post?.text}</p>
+          <p className="text-[#d9d9d9] text-[15px] sm:text-base mt-0.5">
+            {post?.text}
+          </p>
         )}
-        <img src={post?.image} alt="" className='rounded-2xl max-h-[700px] object-cover mr-2' />
-        <div className={`text-[#6e767d] flex justify-between w10/12 ${postPage && 'mx-[70px]'}`}>
+
+        {post?.image && (
+          <img
+            src={post?.image}
+            alt=""
+            className="rounded-2xl max-h-[700px] object-cover mr-2"
+          />
+        )}
+
+        {/* Action buttons */}
+        <div
+          className={`text-[#6e767d] flex justify-between w-10/12 ${
+            postPage ? "mx-[70px]" : ""
+          }`}
+        >
+          {/* Comment */}
           <div
             className="flex items-center space-x-1 group"
             onClick={(e) => {
@@ -122,7 +160,8 @@ function Post({ id, post, postPage }) {
             )}
           </div>
 
-          {session.user.uid === post?.id ? (
+          {/* Delete */}
+          {session?.user?.email === post?.email && (
             <div
               className="flex items-center space-x-1 group"
               onClick={(e) => {
@@ -135,14 +174,9 @@ function Post({ id, post, postPage }) {
                 <TrashIcon className="h-5 group-hover:text-red-600" />
               </div>
             </div>
-          ) : (
-            <div className="flex items-center space-x-1 group">
-              <div className="icon group-hover:bg-green-500/10">
-                <SwitchHorizontalIcon className="h-5 group-hover:text-green-500" />
-              </div>
-            </div>
           )}
 
+          {/* Like */}
           <div
             className="flex items-center space-x-1 group"
             onClick={(e) => {
@@ -160,7 +194,7 @@ function Post({ id, post, postPage }) {
             {likes.length > 0 && (
               <span
                 className={`group-hover:text-pink-600 text-sm ${
-                  liked && "text-pink-600"
+                  liked ? "text-pink-600" : ""
                 }`}
               >
                 {likes.length}
@@ -168,16 +202,19 @@ function Post({ id, post, postPage }) {
             )}
           </div>
 
+          {/* Share */}
           <div className="icon group">
             <ShareIcon className="h-5 group-hover:text-[#1d9bf0]" />
           </div>
+
+          {/* Analytics */}
           <div className="icon group">
             <ChartBarIcon className="h-5 group-hover:text-[#1d9bf0]" />
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Post
+export default Post;
