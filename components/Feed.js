@@ -16,7 +16,7 @@ function Feed() {
       setPosts(snapshot.docs);
     });
 
-    return () => unsubscribe(); // Clean up listener on unmount
+    return () => unsubscribe();
   }, []);
 
   return (

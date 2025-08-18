@@ -4,12 +4,13 @@ import Image from "next/image";
 function Login({ providers }) {
   return (
     <div className="flex flex-col items-center space-y-20 pt-48">
-      <Image
-        src="https://rb.gy/ogau5a"
+       <Image
+        src="https://www.iconpacks.net/icons/2/free-twitter-logo-icon-2429-thumb.png"
         width={150}
         height={150}
-        objectFit="contain"
+        alt="Twitter Logo"
       />
+
 
       <div>
         {Object.values(providers).map((provider) => (

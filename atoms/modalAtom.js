@@ -1,11 +1,22 @@
-import { atom } from 'recoil';
+import { atom } from "recoil";
 
-export const modalState = atom({
-  key: 'modalState',
-  default: false,
-});
+// Avoid duplicate atoms during HMR
+export const modalState =
+  global.modalState ??
+  atom({
+    key: "modalState",
+    default: false,
+  });
 
-export const postIdState = atom({
-  key: 'postIdState',
-  default: '',
-});
+export const postIdState =
+  global.postIdState ??
+  atom({
+    key: "postIdState",
+    default: "",
+  });
+
+// Assign to global to persist across hot reloads
+if (typeof window !== "undefined") {
+  global.modalState = modalState;
+  global.postIdState = postIdState;
+}

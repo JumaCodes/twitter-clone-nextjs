@@ -13,7 +13,6 @@ import {
   DotsHorizontalIcon,
   HeartIcon,
   ShareIcon,
-  SwitchHorizontalIcon,
   TrashIcon,
 } from "@heroicons/react/outline";
 import { HeartIcon as HeartIconFilled } from "@heroicons/react/solid";
@@ -22,7 +21,8 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Moment from "react-moment";
 import { useRecoilState } from "recoil";
-import { modalState, postIdState } from "../atoms/modalAtom";
+import { modalState, postIdState } from "@/atoms/modalAtom";
+
 import { db } from "../firebase";
 
 function Post({ id, post, postPage }) {
@@ -78,7 +78,7 @@ function Post({ id, post, postPage }) {
   return (
     <div
       className="p-3 flex cursor-pointer border-b border-gray-700"
-      onClick={() => router.push(`/${id}`)}
+      onClick={() => !postPage && router.push(`/${id}`)} // Only navigate if not on post page
     >
       {!postPage && (
         <img
@@ -107,7 +107,9 @@ function Post({ id, post, postPage }) {
             </div>{" "}
             ·{" "}
             <span className="hover:underline text-sm sm:text-[15px]">
-              <Moment fromNow>{post?.timestamp?.toDate()}</Moment>
+              {post?.timestamp && (
+                <Moment fromNow>{post.timestamp.toDate()}</Moment>
+              )}
             </span>
             {!postPage && (
               <p className="text-[#d9d9d9] text-[15px] sm:text-base mt-0.5">
@@ -129,7 +131,7 @@ function Post({ id, post, postPage }) {
 
         {post?.image && (
           <img
-            src={post?.image}
+            src={post.image}
             alt=""
             className="rounded-2xl max-h-[700px] object-cover mr-2"
           />

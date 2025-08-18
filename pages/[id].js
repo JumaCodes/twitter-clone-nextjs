@@ -9,12 +9,12 @@ import { getProviders, getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
-import { modalState } from "../atoms/modalAtom";
+import { modalState } from "@/atoms/modalAtom"; // Keep only modalState
 import Modal from "../components/Modal";
 import Sidebar from "../components/Sidebar";
 import Widgets from "../components/Widgets";
 import Post from "../components/Post";
-import Comment from "../components/Comment";
+import Comment from "../components/Comments";
 import { db } from "../firebase";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
 import Head from "next/head";
