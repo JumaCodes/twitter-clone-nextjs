@@ -6,6 +6,7 @@ import Login from "../components/Login";
 import Modal from "../components/Modal";
 import { useRecoilState } from "recoil";
 import { modalState } from "@/atoms/modalAtom";
+import { postIdState } from "@/atoms/postIdAtom";
 import Widgets from "../components/Widgets";
 import { useState } from "react";
 
