@@ -43,7 +43,6 @@ export default function Home({ trendingResults, followResults, providers }) {
   );
 }
 
-// Server-side fetching
 export async function getServerSideProps(context) {
   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
   const host = context.req.headers.host;
@@ -55,7 +54,13 @@ export async function getServerSideProps(context) {
   // Fetch Trending News
   try {
     const trendingRes = await fetch(`${baseUrl}/api/trending`);
-    const trendingData = await trendingRes.json();
+    const trendingText = await trendingRes.text();
+    let trendingData = {};
+    try {
+      trendingData = JSON.parse(trendingText);
+    } catch (err) {
+      console.error("Failed to parse trending JSON:", trendingText);
+    }
 
     trendingResults = Array.isArray(trendingData.trendingResults)
       ? trendingData.trendingResults.map((item) => ({
@@ -71,7 +76,13 @@ export async function getServerSideProps(context) {
   // Fetch Follow Suggestions
   try {
     const followRes = await fetch(`${baseUrl}/api/follow`);
-    const followData = await followRes.json();
+    const followText = await followRes.text();
+    let followData = {};
+    try {
+      followData = JSON.parse(followText);
+    } catch (err) {
+      console.error("Failed to parse follow JSON:", followText);
+    }
 
     followResults = Array.isArray(followData.followResults)
       ? followData.followResults.map((item) => ({
