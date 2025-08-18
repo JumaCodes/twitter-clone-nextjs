@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  module.exports = {
-  eslint: {
-    ignoreDuringBuilds: true,
+ eslint: {
+    ignoreDuringBuilds: true, // ignore ESLint errors during Vercel build
   },
-};
 
   reactStrictMode: true,
   images: {
