@@ -33,8 +33,9 @@
     "tailwindcss": "^3.0.23",
     "typescript": "^5.9.2"
   },
- "engines": {
+"engines": {
   "node": "18.x"
 }
+
 
 }
