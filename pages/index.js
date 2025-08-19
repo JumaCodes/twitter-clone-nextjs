@@ -43,12 +43,9 @@ export default function Home({ trendingResults, followResults, providers }) {
   );
 }
 
-import { getProviders, getSession } from "next-auth/react";
-
 export async function getServerSideProps(context) {
-  const baseUrl = process.env.NODE_ENV === "development"
-    ? "http://localhost:3000"
-    : process.env.PRODUCTION_BASE_URL;
+  const baseUrl = process.env.PRODUCTION_BASE_URL || "http://localhost:3000";
+
 
   let trendingResults = [];
   let followResults = [];
