@@ -44,24 +44,24 @@ export default function Home({ trendingResults, followResults, providers }) {
 }
 
 export async function getServerSideProps(context) {
-  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-  const host = context.req.headers.host;
-  const baseUrl = `${protocol}://${host}`;
+  // Determine base URL based on environment
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+      : process.env.PRODUCTION_BASE_URL || "https://twitter-clone-nextjs-snowy.vercel.app"; // no trailing slash
 
   let trendingResults = [];
   let followResults = [];
 
-  // Fetch Trending News
+  // --- Fetch Trending News ---
   try {
-    const trendingRes = await fetch(`${baseUrl}/api/trending`);
-    const trendingText = await trendingRes.text();
-    let trendingData = {};
-    try {
-      trendingData = JSON.parse(trendingText);
-    } catch (err) {
-      console.error("Failed to parse trending JSON:", trendingText);
-    }
+    const trendingUrl = `${baseUrl}/api/trending`;
+    console.log("Fetching trending news from:", trendingUrl);
 
+    const trendingRes = await fetch(trendingUrl);
+    if (!trendingRes.ok) throw new Error(`HTTP error! status: ${trendingRes.status}`);
+
+    const trendingData = await trendingRes.json();
     trendingResults = Array.isArray(trendingData.trendingResults)
       ? trendingData.trendingResults.map((item) => ({
           title: item.title || "No Title",
@@ -71,19 +71,18 @@ export async function getServerSideProps(context) {
       : [];
   } catch (error) {
     console.error("❌ Failed to fetch trending news:", error);
+    trendingResults = []; // fallback
   }
 
-  // Fetch Follow Suggestions
+  // --- Fetch Follow Suggestions ---
   try {
-    const followRes = await fetch(`${baseUrl}/api/follow`);
-    const followText = await followRes.text();
-    let followData = {};
-    try {
-      followData = JSON.parse(followText);
-    } catch (err) {
-      console.error("Failed to parse follow JSON:", followText);
-    }
+    const followUrl = `${baseUrl}/api/follow`;
+    console.log("Fetching follow suggestions from:", followUrl);
 
+    const followRes = await fetch(followUrl);
+    if (!followRes.ok) throw new Error(`HTTP error! status: ${followRes.status}`);
+
+    const followData = await followRes.json();
     followResults = Array.isArray(followData.followResults)
       ? followData.followResults.map((item) => ({
           name: item.name || "Unknown",
@@ -93,10 +92,18 @@ export async function getServerSideProps(context) {
       : [];
   } catch (error) {
     console.error("❌ Failed to fetch follow suggestions:", error);
+    followResults = []; // fallback
   }
 
-  const providers = await getProviders();
-  const session = await getSession(context);
+  // --- Fetch auth providers and session ---
+  let providers = {};
+  let session = null;
+  try {
+    providers = await getProviders();
+    session = await getSession(context);
+  } catch (error) {
+    console.error("❌ Failed to fetch auth providers or session:", error);
+  }
 
   return {
     props: {
